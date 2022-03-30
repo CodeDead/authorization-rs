@@ -76,7 +76,7 @@ pub async fn authenticate(
 
     let sub = user.id;
     let iat = Utc::now();
-    let exp = iat + chrono::Duration::days(1);
+    let exp = iat + chrono::Duration::milliseconds(pool.jwt.expires);
 
     let claims = Claims::new(sub, iat, exp);
 
