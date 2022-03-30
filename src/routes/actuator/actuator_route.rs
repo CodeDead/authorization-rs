@@ -1,6 +1,6 @@
 use actix_web::{get, HttpResponse};
 
-use crate::routes::health::dto::health_response::HealthResponse;
+use crate::routes::actuator::dto::health_response::HealthResponse;
 
 #[get("/health")]
 pub async fn get_status() -> HttpResponse {

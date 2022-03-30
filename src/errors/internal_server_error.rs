@@ -5,6 +5,8 @@ use serde::Serialize;
 pub struct InternalServerError {
     message: String,
     timestamp: String,
+    #[serde(rename(serialize = "errorCode", deserialize = "errorCode"))]
+    error_code: u16,
 }
 
 impl InternalServerError {
@@ -12,6 +14,7 @@ impl InternalServerError {
         InternalServerError {
             message: String::from(message),
             timestamp: Utc::now().to_string(),
+            error_code: 500,
         }
     }
 }

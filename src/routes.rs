@@ -4,16 +4,17 @@ use mongodb::Database;
 
 use crate::configuration::appdatapool::AppDataPool;
 use crate::persistence::user::model::user::User;
+use crate::routes::user::dto::user::User as UserDto;
 use crate::services::permission::permission_service::PermissionService;
 use crate::services::role::role_service::RoleService;
 
+use self::actuator::actuator_route;
 use self::authentication::authentication_route;
 use self::authentication::dto::authentication_response::Claims;
-use self::health::health_route;
 use self::user::user_route;
 
+pub mod actuator;
 pub mod authentication;
-pub mod health;
 pub mod user;
 
 pub const EMAIL_REGEX_PATTERN: &str =
@@ -23,7 +24,7 @@ pub struct Routes {}
 
 impl Routes {
     pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-        cfg.service(web::scope("/actuators").service(health_route::get_status));
+        cfg.service(web::scope("/actuators").service(actuator_route::get_status));
 
         cfg.service(
             web::scope("/users")
@@ -54,8 +55,6 @@ pub async fn check_user_permissions(
         Some(d) => d,
     };
 
-    println!("Checking UUID");
-
     match pool
         .services
         .user_service
@@ -78,7 +77,7 @@ pub async fn check_user_permissions(
                 .await;
             }
         },
-        Err(_e) => false,
+        Err(_) => false,
     }
 }
 
@@ -116,7 +115,7 @@ pub fn get_user_uuid_from_token(
     );
     let res = match token_result {
         Ok(d) => d,
-        Err(_e) => return None,
+        Err(_) => return None,
     };
 
     return Some(res.claims.sub);
@@ -163,8 +162,8 @@ pub async fn does_user_have_permission(
     false
 }
 
-pub fn convert_user_to_dto(user: User) -> crate::routes::user::dto::user::User {
-    crate::routes::user::dto::user::User {
+pub fn convert_user_to_dto(user: User) -> UserDto {
+    UserDto {
         id: user.id,
         username: user.username,
         email_address: user.email_address,

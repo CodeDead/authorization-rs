@@ -8,9 +8,13 @@ use crate::{
     configuration::appdatapool::AppDataPool,
     errors::{bad_request::BadRequest, internal_server_error::InternalServerError},
     persistence::user::model::user::User,
-    routes::{user::dto::{
-        create_user::CreateUser, update_password::UpdatePassword, update_user::UpdateUser,
-    }, convert_user_to_dto, EMAIL_REGEX_PATTERN},
+    routes::{
+        convert_user_to_dto,
+        user::dto::{
+            create_user::CreateUser, update_password::UpdatePassword, update_user::UpdateUser,
+        },
+        EMAIL_REGEX_PATTERN,
+    },
 };
 
 #[post("/")]
@@ -20,7 +24,7 @@ pub async fn create_user(
     req: HttpRequest,
 ) -> HttpResponse {
     if !crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_USER").await {
-        return actix_web::HttpResponse::Unauthorized().body("");
+        return HttpResponse::Unauthorized().body("");
     }
     if create_user.username.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Username cannot be empty!"));
@@ -36,7 +40,7 @@ pub async fn create_user(
 
     let email_regex = Regex::new(EMAIL_REGEX_PATTERN).unwrap();
     if !email_regex.is_match(&create_user.email_address) {
-        return actix_web::HttpResponse::BadRequest()
+        return HttpResponse::BadRequest()
             .json(BadRequest::new("Invalid email address!"));
     }
 
@@ -110,7 +114,7 @@ pub async fn create_user(
 #[get("/")]
 pub async fn find_all_users(pool: web::Data<AppDataPool>, req: HttpRequest) -> HttpResponse {
     if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_USER").await {
-        return actix_web::HttpResponse::Unauthorized().body("");
+        return HttpResponse::Unauthorized().body("");
     }
     let users = match pool.services.user_service.find_all(&pool.database).await {
         Ok(d) => d,
@@ -134,7 +138,7 @@ pub async fn find_by_uuid(
     req: HttpRequest,
 ) -> HttpResponse {
     if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_USER").await {
-        return actix_web::HttpResponse::Unauthorized().body("");
+        return HttpResponse::Unauthorized().body("");
     }
     let user = match pool
         .services
@@ -163,7 +167,7 @@ pub async fn update_by_uuid(
     req: HttpRequest,
 ) -> HttpResponse {
     if !crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_USER").await {
-        return actix_web::HttpResponse::Unauthorized().body("");
+        return HttpResponse::Unauthorized().body("");
     }
 
     if path.is_empty() {
@@ -180,7 +184,7 @@ pub async fn update_by_uuid(
 
     let email_regex = Regex::new(EMAIL_REGEX_PATTERN).unwrap();
     if !email_regex.is_match(&update.email_address) {
-        return actix_web::HttpResponse::BadRequest()
+        return HttpResponse::BadRequest()
             .json(BadRequest::new("Invalid email address!"));
     }
 
