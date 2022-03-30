@@ -17,6 +17,8 @@ pub struct MongoDB {
     pub database: String,
     pub user: String,
     pub password: String,
+    pub ssl: bool,
+    pub auth_source: String,
     pub permission_collection: String,
     pub role_collection: String,
     pub user_collection: String,
@@ -44,12 +46,13 @@ impl Config {
 
 pub async fn get_mongo_config(conf: &Config) -> Database {
     let client = Client::with_uri_str(format!(
-        "mongodb://{}:{}@{}:{}/?authSource={}&ssl=false",
+        "mongodb://{}:{}@{}:{}/?authSource={}&ssl={}",
         conf.mongodb.user,
         conf.mongodb.password,
         conf.mongodb.address,
         conf.mongodb.port,
-        conf.mongodb.database
+        conf.mongodb.auth_source,
+        conf.mongodb.ssl
     ))
     .await;
 

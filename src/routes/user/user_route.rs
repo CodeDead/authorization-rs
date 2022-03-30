@@ -40,8 +40,7 @@ pub async fn create_user(
 
     let email_regex = Regex::new(EMAIL_REGEX_PATTERN).unwrap();
     if !email_regex.is_match(&create_user.email_address) {
-        return HttpResponse::BadRequest()
-            .json(BadRequest::new("Invalid email address!"));
+        return HttpResponse::BadRequest().json(BadRequest::new("Invalid email address!"));
     }
 
     let optional = match pool
@@ -76,6 +75,27 @@ pub async fn create_user(
 
     if let Some(_d) = optional {
         return HttpResponse::BadRequest().json(BadRequest::new("Email address is already taken!"));
+    }
+
+    // Check if the roles that are given actually exist
+    for role in &create_user.roles {
+        match pool
+            .services
+            .role_service
+            .find_by_uuid(&pool.database, role)
+            .await
+        {
+            Ok(d) => {
+                if d.is_none() {
+                    return HttpResponse::BadRequest()
+                        .json(BadRequest::new(&format!("Invalid role {}", role)));
+                }
+            }
+            Err(e) => {
+                return HttpResponse::InternalServerError()
+                    .json(InternalServerError::new(&e.to_string()));
+            }
+        }
     }
 
     let new_user = User {
@@ -184,8 +204,7 @@ pub async fn update_by_uuid(
 
     let email_regex = Regex::new(EMAIL_REGEX_PATTERN).unwrap();
     if !email_regex.is_match(&update.email_address) {
-        return HttpResponse::BadRequest()
-            .json(BadRequest::new("Invalid email address!"));
+        return HttpResponse::BadRequest().json(BadRequest::new("Invalid email address!"));
     }
 
     let mut old_user = match pool
@@ -203,6 +222,27 @@ pub async fn update_by_uuid(
                 .json(InternalServerError::new(&e.to_string()))
         }
     };
+
+    // Check if the roles that are given actually exist
+    for role in &update.roles {
+        match pool
+            .services
+            .role_service
+            .find_by_uuid(&pool.database, role)
+            .await
+        {
+            Ok(d) => {
+                if d.is_none() {
+                    return HttpResponse::BadRequest()
+                        .json(BadRequest::new(&format!("Invalid role {}", role)));
+                }
+            }
+            Err(e) => {
+                return HttpResponse::InternalServerError()
+                    .json(InternalServerError::new(&e.to_string()));
+            }
+        }
+    }
 
     let user_by_username = match pool
         .services
@@ -289,16 +329,17 @@ pub async fn update_password(
         return HttpResponse::BadRequest().json(BadRequest::new("Password cannot be empty!"));
     }
 
-    let _old_user = match pool
+    match pool
         .services
         .user_service
         .find_by_uuid(&pool.database, &path)
         .await
     {
-        Ok(d) => match d {
-            Some(d) => d,
-            None => return HttpResponse::NotFound().body(""),
-        },
+        Ok(d) => {
+            if d.is_none() {
+                return HttpResponse::NotFound().body("");
+            }
+        }
         Err(e) => {
             return HttpResponse::InternalServerError()
                 .json(InternalServerError::new(&e.to_string()))
@@ -341,17 +382,13 @@ pub async fn delete_by_uuid(
         return HttpResponse::BadRequest().json(BadRequest::new("Invalid UUID"));
     }
 
-    let _res = match pool
+    if let Err(e) = pool
         .services
         .user_service
         .delete(&pool.database, &path)
         .await
     {
-        Ok(d) => d,
-        Err(e) => {
-            return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()))
-        }
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
     };
 
     HttpResponse::Ok().body("")
