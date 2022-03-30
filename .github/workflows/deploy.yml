@@ -27,7 +27,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            target/release/text-diff
+            target/release/authorization-rs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,7 +52,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: target/release/text-diff.exe
+          files: target/release/authorization-rs.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,13 +72,13 @@ jobs:
           override: true
 
       - name: Build for mac
-        run: cargo build --release && mv target/release/text-diff target/release/text-diff_darwin
+        run: cargo build --release && mv target/release/authorization-rs target/release/authorization-rs_darwin
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            target/release/text-diff_darwin
+            target/release/authorization-rs_darwin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
