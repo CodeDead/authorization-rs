@@ -64,6 +64,16 @@ pub async fn authenticate(
         Err(_) => return HttpResponse::InternalServerError().body(""),
     }
 
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &user.id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
+
     let sub = user.id;
     let iat = Utc::now();
     let exp = iat + chrono::Duration::days(1);
@@ -193,7 +203,26 @@ pub async fn get_current_user(pool: web::Data<AppDataPool>, req: HttpRequest) ->
             Some(d) => d,
             None => {
                 return HttpResponse::NotFound().body("");
-            },
+            }
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
+        }
+    };
+
+    let user = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &user.id, &Utc::now().to_string())
+        .await;
+
+    let user = match user {
+        Ok(d) => match d {
+            Some(d) => d,
+            None => {
+                return HttpResponse::NotFound().body("");
+            }
         },
         Err(e) => {
             return HttpResponse::InternalServerError()

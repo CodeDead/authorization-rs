@@ -60,6 +60,17 @@ impl UserService {
         self.repository.update_password(db, uuid, password).await
     }
 
+    pub async fn update_last_active(
+        &self,
+        db: &Database,
+        uuid: &str,
+        last_active: &str,
+    ) -> Result<Option<User>, Error> {
+        self.repository
+            .update_last_active(db, uuid, last_active)
+            .await
+    }
+
     pub async fn delete(&self, db: &Database, uuid: &str) -> Result<u64, Error> {
         self.repository.delete(db, uuid).await
     }

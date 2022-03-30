@@ -149,6 +149,33 @@ impl UserRepository {
         }
     }
 
+    pub async fn update_last_active(
+        &self,
+        db: &Database,
+        uuid: &str,
+        last_active: &str,
+    ) -> Result<Option<User>, Error> {
+        let collection = db.collection::<User>(&self.collection);
+        let filter = doc! {"_id": uuid};
+
+        let update = doc! {"$set": {
+            "lastActive": last_active,
+        }};
+
+        let res = match collection.update_one(filter, update, None).await {
+            Ok(d) => d,
+            Err(e) => return Err(e),
+        };
+
+        let count = res.matched_count;
+
+        if count > 0 {
+            self.find_by_uuid(db, uuid).await
+        } else {
+            Ok(None)
+        }
+    }
+
     pub async fn delete(&self, db: &Database, uuid: &str) -> Result<u64, Error> {
         let qry = doc! { "_id": uuid };
         let cursor = match db
