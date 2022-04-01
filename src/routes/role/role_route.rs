@@ -2,7 +2,7 @@ use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse};
 use uuid::Uuid;
 
 use crate::{
-    configuration::appdatapool::AppDataPool,
+    configuration::app_data_pool::AppDataPool,
     errors::{bad_request::BadRequest, internal_server_error::InternalServerError},
     persistence::role::model::role::Role,
     routes::{

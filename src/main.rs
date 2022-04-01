@@ -8,7 +8,7 @@ mod services;
 
 use actix_cors::Cors;
 use actix_web::{web::Data, App, HttpServer};
-use configuration::{appdatapool::AppDataPool, config::Config};
+use configuration::{app_data_pool::AppDataPool, config::Config};
 use mongodb::Database;
 use routes::Routes;
 use services::Services;

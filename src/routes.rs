@@ -3,7 +3,7 @@ use jsonwebtoken::{DecodingKey, Validation};
 use mongodb::error::Error;
 use mongodb::Database;
 
-use crate::configuration::appdatapool::AppDataPool;
+use crate::configuration::app_data_pool::AppDataPool;
 use crate::persistence::permission::model::permission::Permission;
 use crate::persistence::role::model::role::Role;
 use crate::persistence::user::model::user::User;
