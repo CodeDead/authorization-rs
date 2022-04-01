@@ -193,7 +193,7 @@ pub async fn register(
     {
         Ok(d) => HttpResponse::Ok().json(d),
         Err(e) => HttpResponse::InternalServerError()
-            .json(InternalServerError::new("Unable to create user!")),
+        .json(InternalServerError::new(&e.to_string())),
     }
 }
 
