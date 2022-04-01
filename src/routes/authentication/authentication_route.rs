@@ -175,9 +175,24 @@ pub async fn register(
         }
     };
 
-    match res {
-        Some(d) => HttpResponse::Ok().json(convert_user_to_dto(d)),
-        None => HttpResponse::InternalServerError()
+    let res = match res {
+        Some(d) => d,
+        None => {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new("Unable to create user!"))
+        }
+    };
+
+    match convert_user_to_dto(
+        res,
+        &pool.database,
+        &pool.services.role_service,
+        &pool.services.permission_service,
+    )
+    .await
+    {
+        Ok(d) => HttpResponse::Ok().json(d),
+        Err(e) => HttpResponse::InternalServerError()
             .json(InternalServerError::new("Unable to create user!")),
     }
 }
@@ -189,7 +204,7 @@ pub async fn get_current_user(pool: web::Data<AppDataPool>, req: HttpRequest) ->
     let id = match id {
         Some(d) => d,
         None => {
-            return HttpResponse::BadRequest().json(BadRequest::new("Not authenticated!"));
+            return HttpResponse::Unauthorized().body("");
         }
     };
 
@@ -202,7 +217,7 @@ pub async fn get_current_user(pool: web::Data<AppDataPool>, req: HttpRequest) ->
         Ok(d) => match d {
             Some(d) => d,
             None => {
-                return HttpResponse::NotFound().body("");
+                return HttpResponse::Unauthorized().body("");
             }
         },
         Err(e) => {
@@ -230,5 +245,17 @@ pub async fn get_current_user(pool: web::Data<AppDataPool>, req: HttpRequest) ->
         }
     };
 
-    HttpResponse::Ok().json(convert_user_to_dto(user))
+    match convert_user_to_dto(
+        user,
+        &pool.database,
+        &pool.services.role_service,
+        &pool.services.permission_service,
+    )
+    .await
+    {
+        Ok(d) => HttpResponse::Ok().json(d),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()))
+        }
+    }
 }

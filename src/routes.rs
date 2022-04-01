@@ -1,8 +1,11 @@
 use actix_web::web;
 use jsonwebtoken::{DecodingKey, Validation};
+use mongodb::error::Error;
 use mongodb::Database;
 
 use crate::configuration::appdatapool::AppDataPool;
+use crate::persistence::permission::model::permission::Permission;
+use crate::persistence::role::model::role::Role;
 use crate::persistence::user::model::user::User;
 use crate::routes::user::dto::user::User as UserDto;
 use crate::services::permission::permission_service::PermissionService;
@@ -11,10 +14,16 @@ use crate::services::role::role_service::RoleService;
 use self::actuator::actuator_route;
 use self::authentication::authentication_route;
 use self::authentication::dto::authentication_response::Claims;
+use self::permission::dto::permission::Permission as PermissionDto;
+use self::permission::permission_route;
+use self::role::dto::role::Role as RoleDto;
+use self::role::role_route;
 use self::user::user_route;
 
 pub mod actuator;
 pub mod authentication;
+pub mod permission;
+pub mod role;
 pub mod user;
 
 pub const EMAIL_REGEX_PATTERN: &str =
@@ -34,6 +43,24 @@ impl Routes {
                 .service(user_route::update_by_uuid)
                 .service(user_route::update_password)
                 .service(user_route::delete_by_uuid),
+        );
+
+        cfg.service(
+            web::scope("/roles")
+                .service(role_route::create_new_role)
+                .service(role_route::get_all_roles)
+                .service(role_route::get_role_by_id)
+                .service(role_route::update_role)
+                .service(role_route::delete_role),
+        );
+
+        cfg.service(
+            web::scope("/permissions")
+                .service(permission_route::create_permission)
+                .service(permission_route::get_all_permissions)
+                .service(permission_route::find_by_uuid)
+                .service(permission_route::update_permission)
+                .service(permission_route::delete_permission),
         );
 
         cfg.service(
@@ -162,16 +189,69 @@ pub async fn does_user_have_permission(
     false
 }
 
-pub fn convert_user_to_dto(user: User) -> UserDto {
-    UserDto {
+pub async fn convert_user_to_dto(
+    user: User,
+    db: &Database,
+    role_service: &RoleService,
+    permission_service: &PermissionService,
+) -> Result<UserDto, Error> {
+    let mut roles = vec![];
+    for role in &user.roles {
+        match role_service.find_by_uuid(db, role).await {
+            Ok(d) => {
+                if let Some(x) = d {
+                    match convert_role_to_dto(x, &db, &permission_service).await {
+                        Ok(d) => roles.push(d),
+                        Err(e) => return Err(e),
+                    };
+                }
+            }
+            Err(e) => return Err(e),
+        };
+    }
+
+    Ok(UserDto {
         id: user.id,
         username: user.username,
         email_address: user.email_address,
         first_name: user.first_name,
         last_name: user.last_name,
         enabled: user.enabled,
-        roles: user.roles,
+        roles,
         created_at: user.created_at,
         last_active: user.last_active,
+    })
+}
+
+pub async fn convert_role_to_dto(
+    role: Role,
+    db: &Database,
+    permission_service: &PermissionService,
+) -> Result<RoleDto, Error> {
+    let mut permissions = vec![];
+    for permission in role.permissions {
+        match permission_service.find_by_uuid(db, &permission).await {
+            Ok(d) => {
+                if let Some(x) = d {
+                    permissions.push(convert_permission_to_dto(x));
+                }
+            }
+            Err(e) => return Err(e),
+        };
+    }
+
+    Ok(RoleDto {
+        id: role.id,
+        name: role.name,
+        description: role.description,
+        permissions,
+    })
+}
+
+pub fn convert_permission_to_dto(permission: Permission) -> PermissionDto {
+    PermissionDto {
+        id: permission.id,
+        name: permission.name,
+        description: permission.description,
     }
 }

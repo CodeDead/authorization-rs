@@ -124,11 +124,30 @@ pub async fn create_user(
         }
     };
 
-    match res {
-        Some(d) => HttpResponse::Ok().json(convert_user_to_dto(d)),
-        None => HttpResponse::InternalServerError()
-            .json(InternalServerError::new("Unable to create user!")),
-    }
+    let user = match res {
+        Some(d) => d,
+        None => {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new("Unable to create user!"))
+        }
+    };
+
+    let user = match convert_user_to_dto(
+        user,
+        &pool.database,
+        &pool.services.role_service,
+        &pool.services.permission_service,
+    )
+    .await
+    {
+        Ok(d) => d,
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
+        }
+    };
+
+    HttpResponse::Ok().json(user)
 }
 
 #[get("/")]
@@ -148,7 +167,26 @@ pub async fn find_all_users(pool: web::Data<AppDataPool>, req: HttpRequest) -> H
         HttpResponse::NotFound().body("");
     }
 
-    HttpResponse::Ok().json(users)
+    let mut user_dto = vec![];
+    for user in users {
+        let user = match convert_user_to_dto(
+            user,
+            &pool.database,
+            &pool.services.role_service,
+            &pool.services.permission_service,
+        )
+        .await
+        {
+            Ok(d) => d,
+            Err(e) => {
+                return HttpResponse::InternalServerError()
+                    .json(InternalServerError::new(&e.to_string()));
+            }
+        };
+        user_dto.push(user);
+    }
+
+    HttpResponse::Ok().json(user_dto)
 }
 
 #[get("/{uuid}")]
@@ -173,10 +211,29 @@ pub async fn find_by_uuid(
         }
     };
 
-    match user {
-        Some(x) => HttpResponse::Ok().json(x),
-        None => HttpResponse::NotFound().body(""),
-    }
+    let user = match user {
+        Some(d) => d,
+        None => {
+            return HttpResponse::NotFound().body("");
+        }
+    };
+
+    let user = match convert_user_to_dto(
+        user,
+        &pool.database,
+        &pool.services.role_service,
+        &pool.services.permission_service,
+    )
+    .await
+    {
+        Ok(d) => d,
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
+        }
+    };
+
+    HttpResponse::Ok().json(user)
 }
 
 #[put("/{uuid}")]
@@ -303,10 +360,25 @@ pub async fn update_by_uuid(
         }
     };
 
-    if let Some(x) = user {
-        HttpResponse::Ok().json(convert_user_to_dto(x))
-    } else {
-        HttpResponse::NoContent().body("")
+    let user = match user {
+        Some(d) => d,
+        None => {
+            return HttpResponse::NoContent().body("");
+        }
+    };
+
+    match convert_user_to_dto(
+        user,
+        &pool.database,
+        &pool.services.role_service,
+        &pool.services.permission_service,
+    )
+    .await
+    {
+        Ok(d) => HttpResponse::Ok().json(d),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()))
+        }
     }
 }
 
@@ -361,10 +433,25 @@ pub async fn update_password(
         }
     };
 
-    if let Some(x) = user {
-        HttpResponse::Ok().json(convert_user_to_dto(x))
-    } else {
-        HttpResponse::NoContent().body("")
+    let user = match user {
+        Some(d) => d,
+        None => {
+            return HttpResponse::NoContent().body("");
+        }
+    };
+
+    match convert_user_to_dto(
+        user,
+        &pool.database,
+        &pool.services.role_service,
+        &pool.services.permission_service,
+    )
+    .await
+    {
+        Ok(d) => HttpResponse::Ok().json(d),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()))
+        }
     }
 }
 
@@ -376,10 +463,6 @@ pub async fn delete_by_uuid(
 ) -> HttpResponse {
     if !crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_USER").await {
         return HttpResponse::Unauthorized().body("");
-    }
-
-    if path.is_empty() {
-        return HttpResponse::BadRequest().json(BadRequest::new("Invalid UUID"));
     }
 
     if let Err(e) = pool

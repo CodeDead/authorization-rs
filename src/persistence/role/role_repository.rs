@@ -57,6 +57,20 @@ impl RoleRepository {
         Ok(cursor)
     }
 
+    pub async fn find_by_name(&self, db: &Database, name: &str) -> Result<Option<Role>, Error> {
+        let filter = doc! { "name": name};
+        let cursor = match db
+            .collection::<Role>(&self.collection)
+            .find_one(filter, None)
+            .await
+        {
+            Ok(d) => d,
+            Err(e) => return Err(e),
+        };
+
+        Ok(cursor)
+    }
+
     pub async fn update(
         &self,
         db: &Database,

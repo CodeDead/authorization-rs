@@ -24,6 +24,10 @@ impl RoleService {
         self.repository.find_by_uuid(db, uuid).await
     }
 
+    pub async fn find_by_name(&self, db: &Database, name: &str) -> Result<Option<Role>, Error> {
+        self.repository.find_by_name(db, name).await
+    }
+
     pub async fn update(
         &self,
         db: &Database,
