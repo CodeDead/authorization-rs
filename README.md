@@ -1,5 +1,11 @@
 # authorization-rs
 
+![GitHub](https://img.shields.io/badge/language-Rust-green)
+![GitHub](https://img.shields.io/github/license/CodeDead/authorization-rs)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/CodeDead/authorization-rs?include_prereleases)
+[![Deploy](https://github.com/CodeDead/authorization-rs/actions/workflows/deploy.yml/badge.svg)](https://github.com/CodeDead/authorization-rs/actions/workflows/deploy.yml)
+[![Test](https://github.com/CodeDead/authorization-rs/actions/workflows/test.yml/badge.svg)](https://github.com/CodeDead/authorization-rs/actions/workflows/test.yml)
+
 `authorization-rs` is a (micro)service that can be used to authenticate, register and authorize users using roles, permissions and a MongoDB backend.
 
 ## Building
