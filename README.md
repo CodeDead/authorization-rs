@@ -1,6 +1,6 @@
 # authorization-rs
 
-`authorization-rs` is a microservice that can be used to authenticate and authorize users using roles, permissions and a MongoDB backend.
+`authorization-rs` is a (micro)service that can be used to authenticate, register and authorize users using roles, permissions and a MongoDB backend.
 
 ## Building
 
