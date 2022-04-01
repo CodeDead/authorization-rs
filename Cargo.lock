@@ -270,7 +270,6 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "time 0.3.9",
  "uuid",
 ]
 
@@ -1952,7 +1951,6 @@ dependencies = [
  "libc",
  "num_threads",
  "quickcheck",
- "serde",
  "time-macros",
 ]
 
