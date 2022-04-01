@@ -67,7 +67,9 @@ impl Routes {
             web::scope("/authentication")
                 .service(authentication_route::authenticate)
                 .service(authentication_route::register)
-                .service(authentication_route::get_current_user),
+                .service(authentication_route::get_current_user)
+                .service(authentication_route::update_current_user)
+                .service(authentication_route::update_current_user_password),
         );
     }
 }
