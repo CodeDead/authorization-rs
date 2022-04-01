@@ -2,7 +2,7 @@
 
 ![GitHub](https://img.shields.io/badge/language-Rust-green)
 ![GitHub](https://img.shields.io/github/license/CodeDead/authorization-rs)
-![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/CodeDead/authorization-rs?include_prereleases&style=plastic)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/CodeDead/authorization-rs?include_prereleases)
 [![Deploy](https://github.com/CodeDead/authorization-rs/actions/workflows/deploy.yml/badge.svg)](https://github.com/CodeDead/authorization-rs/actions/workflows/deploy.yml)
 [![Test](https://github.com/CodeDead/authorization-rs/actions/workflows/test.yml/badge.svg)](https://github.com/CodeDead/authorization-rs/actions/workflows/test.yml)
 
