@@ -292,7 +292,6 @@ pub async fn delete_role(
     for user in &mut users_with_role {
         user.roles.retain(|x| *x != path.to_string());
 
-
         let response = pool
             .services
             .user_service
