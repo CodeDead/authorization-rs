@@ -89,6 +89,21 @@ impl UserRepository {
         Ok(res)
     }
 
+    pub async fn find_by_role_id(&self, db: &Database, role_id: &str) -> Result<Vec<User>, Error> {
+        let filter = doc! { "roles": role_id };
+
+        let cursor = match db
+            .collection::<User>(&self.collection)
+            .find(filter, None)
+            .await
+        {
+            Ok(d) => d,
+            Err(e) => return Err(e),
+        };
+
+        Ok(cursor.try_collect().await.unwrap_or_else(|_| vec![]))
+    }
+
     pub async fn update(
         &self,
         db: &Database,

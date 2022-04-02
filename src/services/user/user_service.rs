@@ -42,6 +42,10 @@ impl UserService {
             .await
     }
 
+    pub async fn find_by_role_id(&self, db: &Database, role_id: &str) -> Result<Vec<User>, Error> {
+        self.repository.find_by_role_id(db, role_id).await
+    }
+
     pub async fn update(
         &self,
         db: &Database,
