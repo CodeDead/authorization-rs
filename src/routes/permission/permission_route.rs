@@ -234,12 +234,7 @@ pub async fn delete_permission(
     };
 
     for role in &mut roles_with_permission {
-        let index = role
-            .permissions
-            .iter()
-            .position(|x| *x == path.to_string())
-            .unwrap();
-        role.permissions.remove(index);
+        role.permissions.retain(|x| *x != path.to_string());
 
         let response = pool
             .services
