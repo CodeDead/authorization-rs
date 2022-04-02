@@ -290,12 +290,21 @@ pub async fn delete_role(
     };
 
     for user in &mut users_with_role {
-        let index = user.roles.iter().position(|x| *x == path.to_string()).unwrap();
+        let index = user
+            .roles
+            .iter()
+            .position(|x| *x == path.to_string())
+            .unwrap();
         user.roles.remove(index);
 
-        let response = pool.services.user_service.update(&pool.database, &user.id, user.clone()).await;
+        let response = pool
+            .services
+            .user_service
+            .update(&pool.database, &user.id, user.clone())
+            .await;
         if let Err(e) = response {
-            return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
         }
     }
 

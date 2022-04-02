@@ -234,12 +234,21 @@ pub async fn delete_permission(
     };
 
     for role in &mut roles_with_permission {
-        let index = role.permissions.iter().position(|x| *x == path.to_string()).unwrap();
+        let index = role
+            .permissions
+            .iter()
+            .position(|x| *x == path.to_string())
+            .unwrap();
         role.permissions.remove(index);
 
-        let response = pool.services.role_service.update(&pool.database, &role.id, role.clone()).await;
+        let response = pool
+            .services
+            .role_service
+            .update(&pool.database, &role.id, role.clone())
+            .await;
         if let Err(e) = response {
-            return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
         }
     }
 
