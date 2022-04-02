@@ -28,6 +28,16 @@ impl RoleService {
         self.repository.find_by_name(db, name).await
     }
 
+    pub async fn find_by_permission_id(
+        &self,
+        db: &Database,
+        permission_id: &str,
+    ) -> Result<Vec<Role>, Error> {
+        self.repository
+            .find_by_permission_id(db, permission_id)
+            .await
+    }
+
     pub async fn update(
         &self,
         db: &Database,

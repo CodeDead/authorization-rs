@@ -71,6 +71,24 @@ impl RoleRepository {
         Ok(cursor)
     }
 
+    pub async fn find_by_permission_id(
+        &self,
+        db: &Database,
+        permission_id: &str,
+    ) -> Result<Vec<Role>, Error> {
+        let filter = doc! { "permissions": permission_id};
+        let cursor = match db
+            .collection::<Role>(&self.collection)
+            .find(filter, None)
+            .await
+        {
+            Ok(d) => d,
+            Err(e) => return Err(e),
+        };
+
+        Ok(cursor.try_collect().await.unwrap_or_else(|_| vec![]))
+    }
+
     pub async fn update(
         &self,
         db: &Database,

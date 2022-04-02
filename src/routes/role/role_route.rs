@@ -276,6 +276,38 @@ pub async fn delete_role(
         return HttpResponse::Unauthorized().body("");
     }
 
+    let mut users_with_role = match pool
+        .services
+        .user_service
+        .find_by_role_id(&pool.database, &path)
+        .await
+    {
+        Ok(d) => d,
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
+        }
+    };
+
+    for user in &mut users_with_role {
+        let index = user
+            .roles
+            .iter()
+            .position(|x| *x == path.to_string())
+            .unwrap();
+        user.roles.remove(index);
+
+        let response = pool
+            .services
+            .user_service
+            .update(&pool.database, &user.id, user.clone())
+            .await;
+        if let Err(e) = response {
+            return HttpResponse::InternalServerError()
+                .json(InternalServerError::new(&e.to_string()));
+        }
+    }
+
     if let Err(e) = pool
         .services
         .role_service
