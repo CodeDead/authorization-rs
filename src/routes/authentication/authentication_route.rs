@@ -212,28 +212,10 @@ pub async fn get_current_user(pool: web::Data<AppDataPool>, req: HttpRequest) ->
         }
     };
 
-    let user = match pool
-        .services
-        .user_service
-        .find_by_uuid(&pool.database, &id)
-        .await
-    {
-        Ok(d) => match d {
-            Some(d) => d,
-            None => {
-                return HttpResponse::Unauthorized().body("");
-            }
-        },
-        Err(e) => {
-            return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()));
-        }
-    };
-
     let user = pool
         .services
         .user_service
-        .update_last_active(&pool.database, &user.id, &Utc::now().to_string())
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
         .await;
 
     let user = match user {
@@ -411,12 +393,13 @@ pub async fn update_current_user_password(
         return HttpResponse::BadRequest().json(BadRequest::new("Password cannot be empty!"));
     }
 
-    let res = match pool
+    let res = pool
         .services
         .user_service
-        .find_by_uuid(&pool.database, &id)
-        .await
-    {
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    let res = match res {
         Ok(d) => {
             if d.is_none() {
                 return HttpResponse::NotFound().body("");
@@ -425,7 +408,7 @@ pub async fn update_current_user_password(
         }
         Err(e) => {
             return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()))
+                .json(InternalServerError::new(&e.to_string()));
         }
     };
 
