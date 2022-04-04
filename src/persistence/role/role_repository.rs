@@ -71,24 +71,6 @@ impl RoleRepository {
         Ok(cursor)
     }
 
-    pub async fn find_by_permission_id(
-        &self,
-        db: &Database,
-        permission_id: &str,
-    ) -> Result<Vec<Role>, Error> {
-        let filter = doc! { "permissions": permission_id};
-        let cursor = match db
-            .collection::<Role>(&self.collection)
-            .find(filter, None)
-            .await
-        {
-            Ok(d) => d,
-            Err(e) => return Err(e),
-        };
-
-        Ok(cursor.try_collect().await.unwrap_or_else(|_| vec![]))
-    }
-
     pub async fn update(
         &self,
         db: &Database,
@@ -131,5 +113,16 @@ impl RoleRepository {
         };
 
         Ok(cursor.deleted_count)
+    }
+
+    pub async fn delete_permission(&self, db: &Database, permission_id: &str) -> Result<u64, Error> {
+        let collection = db.collection::<Role>(&self.collection);
+        let update = doc! { "$pull": {"permissions": permission_id}};
+        let filter = doc! {};
+        
+        match collection.update_many(filter, update, None).await {
+            Ok(d) => Ok(d.modified_count),
+            Err(e) => Err(e),
+        }
     }
 }

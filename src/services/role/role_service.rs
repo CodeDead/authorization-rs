@@ -28,16 +28,6 @@ impl RoleService {
         self.repository.find_by_name(db, name).await
     }
 
-    pub async fn find_by_permission_id(
-        &self,
-        db: &Database,
-        permission_id: &str,
-    ) -> Result<Vec<Role>, Error> {
-        self.repository
-            .find_by_permission_id(db, permission_id)
-            .await
-    }
-
     pub async fn update(
         &self,
         db: &Database,
@@ -49,5 +39,9 @@ impl RoleService {
 
     pub async fn delete(&self, db: &Database, uuid: &str) -> Result<u64, Error> {
         self.repository.delete(db, uuid).await
+    }
+
+    pub async fn delete_permission(&self, db: &Database, permission_id: &str) -> Result<u64, Error> {
+        self.repository.delete_permission(db, permission_id).await
     }
 }

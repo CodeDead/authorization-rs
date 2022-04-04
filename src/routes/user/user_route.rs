@@ -23,9 +23,18 @@ pub async fn create_user(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_USER").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_USER").await;
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+    
     if create_user.username.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Username cannot be empty!"));
     }
@@ -152,9 +161,19 @@ pub async fn create_user(
 
 #[get("/")]
 pub async fn find_all_users(pool: web::Data<AppDataPool>, req: HttpRequest) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_USER").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_READ_USER").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
     let users = match pool.services.user_service.find_all(&pool.database).await {
         Ok(d) => d,
         Err(e) => {
@@ -195,9 +214,19 @@ pub async fn find_by_uuid(
     path: web::Path<String>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_USER").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_READ_USER").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
     let user = match pool
         .services
         .user_service
@@ -243,9 +272,18 @@ pub async fn update_by_uuid(
     path: web::Path<String>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_USER").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_USER").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     if path.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Invalid UUID"));
@@ -389,9 +427,17 @@ pub async fn update_password(
     path: web::Path<String>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_USER").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_USER").await;
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     if path.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Invalid UUID"));
@@ -461,9 +507,17 @@ pub async fn delete_by_uuid(
     path: web::Path<String>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_USER").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_USER").await;
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     if let Err(e) = pool
         .services

@@ -79,7 +79,7 @@ impl UserRepository {
         email_address: &str,
     ) -> Result<Option<User>, Error> {
         let collection = db.collection::<User>(&self.collection);
-        let filter = doc! { "emailAddress": email_address};
+        let filter = doc! { "emailAddress": email_address.to_lowercase()};
 
         let res = match collection.find_one(filter, None).await {
             Ok(d) => d,
@@ -87,21 +87,6 @@ impl UserRepository {
         };
 
         Ok(res)
-    }
-
-    pub async fn find_by_role_id(&self, db: &Database, role_id: &str) -> Result<Vec<User>, Error> {
-        let filter = doc! { "roles": role_id };
-
-        let cursor = match db
-            .collection::<User>(&self.collection)
-            .find(filter, None)
-            .await
-        {
-            Ok(d) => d,
-            Err(e) => return Err(e),
-        };
-
-        Ok(cursor.try_collect().await.unwrap_or_else(|_| vec![]))
     }
 
     pub async fn update(
@@ -203,5 +188,16 @@ impl UserRepository {
         };
 
         Ok(cursor.deleted_count)
+    }
+
+    pub async fn delete_role(&self, db: &Database, role_id: &str) -> Result<u64, Error> {
+        let collection = db.collection::<User>(&self.collection);
+        let update = doc! { "$pull": {"roles": role_id}};
+        let filter = doc! {};
+        
+        match collection.update_many(filter, update, None).await {
+            Ok(d) => Ok(d.modified_count),
+            Err(e) => Err(e),
+        }
     }
 }

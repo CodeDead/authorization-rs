@@ -17,9 +17,18 @@ pub async fn create_new_role(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_ROLE").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_ROLE").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
     if create.name.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Name cannot be empty!"));
     }
@@ -104,9 +113,18 @@ pub async fn create_new_role(
 
 #[get("/")]
 pub async fn get_all_roles(req: HttpRequest, pool: web::Data<AppDataPool>) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_ROLE").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_READ_ROLE").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     let roles = match pool.services.role_service.find_all(&pool.database).await {
         Ok(d) => d,
@@ -138,9 +156,18 @@ pub async fn get_role_by_id(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_ROLE").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_READ_ROLE").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     let res = match pool
         .services
@@ -177,9 +204,18 @@ pub async fn update_role(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_ROLE").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_ROLE").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     if update.name.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Name cannot be empty!"));
@@ -272,35 +308,26 @@ pub async fn delete_role(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_ROLE").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_ROLE").await;
 
-    let mut users_with_role = match pool
-        .services
-        .user_service
-        .find_by_role_id(&pool.database, &path)
-        .await
-    {
-        Ok(d) => d,
-        Err(e) => {
-            return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()));
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
         }
     };
 
-    for user in &mut users_with_role {
-        user.roles.retain(|x| *x != path.to_string());
-
-        let response = pool
-            .services
-            .user_service
-            .update(&pool.database, &user.id, user.clone())
-            .await;
-        if let Err(e) = response {
-            return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()));
-        }
+    if let Err(e) = pool
+        .services
+        .user_service
+        .delete_role(&pool.database, &path)
+        .await
+    {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
     }
 
     if let Err(e) = pool

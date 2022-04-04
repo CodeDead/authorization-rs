@@ -4,6 +4,7 @@ use mongodb::error::Error;
 use mongodb::Database;
 
 use crate::configuration::app_data_pool::AppDataPool;
+use crate::errors::bad_token::BadToken;
 use crate::persistence::permission::model::permission::Permission;
 use crate::persistence::role::model::role::Role;
 use crate::persistence::user::model::user::User;
@@ -78,9 +79,9 @@ pub async fn check_user_permissions(
     req: &actix_web::HttpRequest,
     pool: &web::Data<AppDataPool>,
     permission_name: &str,
-) -> bool {
+) -> Result<bool, BadToken> {
     let uuid = match get_user_uuid_from_token(req, pool) {
-        None => return false,
+        None => return Err(BadToken{}),
         Some(d) => d,
     };
 
@@ -91,12 +92,12 @@ pub async fn check_user_permissions(
         .await
     {
         Ok(res) => match res {
-            None => false,
+            None => Ok(false),
             Some(d) => {
                 if !d.enabled {
-                    return false;
+                    return Ok(false);
                 }
-                return does_user_have_permission(
+                let res = does_user_have_permission(
                     &pool.database,
                     &d,
                     &pool.services.role_service,
@@ -104,9 +105,11 @@ pub async fn check_user_permissions(
                     &permission_name,
                 )
                 .await;
+
+                return Ok(res);
             }
         },
-        Err(_) => false,
+        Err(_) => return Ok(false),
     }
 }
 

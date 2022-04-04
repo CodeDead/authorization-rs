@@ -19,9 +19,18 @@ pub async fn create_permission(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_PERMISSION").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_PERMISSION").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     if create.name.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Name cannot be empty!"));
@@ -79,9 +88,18 @@ pub async fn create_permission(
 
 #[get("/")]
 pub async fn get_all_permissions(pool: web::Data<AppDataPool>, req: HttpRequest) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_PERMISSION").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_READ_PERMISSION").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     let res = match pool
         .services
@@ -110,9 +128,18 @@ pub async fn find_by_uuid(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_READ_PERMISSION").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_READ_PERMISSION").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     let res = match pool
         .services
@@ -140,9 +167,18 @@ pub async fn update_permission(
     path: web::Path<String>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_PERMISSION").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_PERMISSION").await;
+
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
 
     if update.name.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Name cannot be empty!"));
@@ -216,35 +252,26 @@ pub async fn delete_permission(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    if !crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_PERMISSION").await {
-        return HttpResponse::Unauthorized().body("");
-    }
+    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_PERMISSION").await;
 
-    let mut roles_with_permission = match pool
-        .services
-        .role_service
-        .find_by_permission_id(&pool.database, &path)
-        .await
-    {
-        Ok(d) => d,
-        Err(e) => {
-            return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()));
+    match token_res {
+        Ok(d) => {
+            if !d {
+                return HttpResponse::Forbidden().body("");
+            }
+        }
+        Err(_) => {
+            return HttpResponse::Unauthorized().body("");
         }
     };
 
-    for role in &mut roles_with_permission {
-        role.permissions.retain(|x| *x != path.to_string());
-
-        let response = pool
-            .services
-            .role_service
-            .update(&pool.database, &role.id, role.clone())
-            .await;
-        if let Err(e) = response {
-            return HttpResponse::InternalServerError()
-                .json(InternalServerError::new(&e.to_string()));
-        }
+    if let Err(e) = pool
+        .services
+        .role_service
+        .delete_permission(&pool.database, &path)
+        .await
+    {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
     }
 
     if let Err(e) = pool

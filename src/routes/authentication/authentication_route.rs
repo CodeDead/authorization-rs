@@ -411,7 +411,7 @@ pub async fn update_current_user_password(
         return HttpResponse::BadRequest().json(BadRequest::new("Password cannot be empty!"));
     }
 
-    match pool
+    let res = match pool
         .services
         .user_service
         .find_by_uuid(&pool.database, &id)
@@ -421,12 +421,17 @@ pub async fn update_current_user_password(
             if d.is_none() {
                 return HttpResponse::NotFound().body("");
             }
+            d.unwrap()
         }
         Err(e) => {
             return HttpResponse::InternalServerError()
                 .json(InternalServerError::new(&e.to_string()))
         }
     };
+
+    if !res.enabled {
+        return HttpResponse::Unauthorized().body("");
+    }
 
     let new_password = hash(&update.password, DEFAULT_COST).unwrap();
 

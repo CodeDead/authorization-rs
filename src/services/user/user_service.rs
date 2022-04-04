@@ -42,10 +42,6 @@ impl UserService {
             .await
     }
 
-    pub async fn find_by_role_id(&self, db: &Database, role_id: &str) -> Result<Vec<User>, Error> {
-        self.repository.find_by_role_id(db, role_id).await
-    }
-
     pub async fn update(
         &self,
         db: &Database,
@@ -77,5 +73,9 @@ impl UserService {
 
     pub async fn delete(&self, db: &Database, uuid: &str) -> Result<u64, Error> {
         self.repository.delete(db, uuid).await
+    }
+
+    pub async fn delete_role(&self, db: &Database, role_id: &str) -> Result<u64, Error> {
+        self.repository.delete_role(db, role_id).await
     }
 }
