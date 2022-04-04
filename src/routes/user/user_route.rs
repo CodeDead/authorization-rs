@@ -9,7 +9,7 @@ use crate::{
     errors::{bad_request::BadRequest, internal_server_error::InternalServerError},
     persistence::user::model::user::User,
     routes::{
-        convert_user_to_dto,
+        convert_user_to_dto, get_user_uuid_from_token,
         user::dto::{
             create_user::CreateUser, update_password::UpdatePassword, update_user::UpdateUser,
         },
@@ -34,6 +34,23 @@ pub async fn create_user(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     if create_user.username.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Username cannot be empty!"));
@@ -174,6 +191,23 @@ pub async fn find_all_users(pool: web::Data<AppDataPool>, req: HttpRequest) -> H
         }
     };
 
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
+
     let users = match pool.services.user_service.find_all(&pool.database).await {
         Ok(d) => d,
         Err(e) => {
@@ -226,6 +260,23 @@ pub async fn find_by_uuid(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     let user = match pool
         .services
@@ -284,6 +335,23 @@ pub async fn update_by_uuid(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     if path.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Invalid UUID"));
@@ -439,6 +507,23 @@ pub async fn update_password(
         }
     };
 
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
+
     if path.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Invalid UUID"));
     }
@@ -518,6 +603,23 @@ pub async fn delete_by_uuid(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     if let Err(e) = pool
         .services
