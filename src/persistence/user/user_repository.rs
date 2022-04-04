@@ -194,7 +194,7 @@ impl UserRepository {
         let collection = db.collection::<User>(&self.collection);
         let update = doc! { "$pull": {"roles": role_id}};
         let filter = doc! {};
-        
+
         match collection.update_many(filter, update, None).await {
             Ok(d) => Ok(d.modified_count),
             Err(e) => Err(e),

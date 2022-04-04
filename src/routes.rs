@@ -81,7 +81,7 @@ pub async fn check_user_permissions(
     permission_name: &str,
 ) -> Result<bool, BadToken> {
     let uuid = match get_user_uuid_from_token(req, pool) {
-        None => return Err(BadToken{}),
+        None => return Err(BadToken {}),
         Some(d) => d,
     };
 

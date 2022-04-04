@@ -34,7 +34,7 @@ pub async fn create_user(
             return HttpResponse::Unauthorized().body("");
         }
     };
-    
+
     if create_user.username.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Username cannot be empty!"));
     }

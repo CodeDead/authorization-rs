@@ -19,7 +19,8 @@ pub async fn create_permission(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_PERMISSION").await;
+    let token_res =
+        crate::routes::check_user_permissions(&req, &pool, "CAN_CREATE_PERMISSION").await;
 
     match token_res {
         Ok(d) => {
@@ -167,7 +168,8 @@ pub async fn update_permission(
     path: web::Path<String>,
     req: HttpRequest,
 ) -> HttpResponse {
-    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_PERMISSION").await;
+    let token_res =
+        crate::routes::check_user_permissions(&req, &pool, "CAN_UPDATE_PERMISSION").await;
 
     match token_res {
         Ok(d) => {
@@ -252,7 +254,8 @@ pub async fn delete_permission(
     pool: web::Data<AppDataPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    let token_res = crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_PERMISSION").await;
+    let token_res =
+        crate::routes::check_user_permissions(&req, &pool, "CAN_DELETE_PERMISSION").await;
 
     match token_res {
         Ok(d) => {

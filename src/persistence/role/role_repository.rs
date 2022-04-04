@@ -115,11 +115,15 @@ impl RoleRepository {
         Ok(cursor.deleted_count)
     }
 
-    pub async fn delete_permission(&self, db: &Database, permission_id: &str) -> Result<u64, Error> {
+    pub async fn delete_permission(
+        &self,
+        db: &Database,
+        permission_id: &str,
+    ) -> Result<u64, Error> {
         let collection = db.collection::<Role>(&self.collection);
         let update = doc! { "$pull": {"permissions": permission_id}};
         let filter = doc! {};
-        
+
         match collection.update_many(filter, update, None).await {
             Ok(d) => Ok(d.modified_count),
             Err(e) => Err(e),

@@ -1,3 +1,1 @@
-pub struct BadToken {
-
-}
+pub struct BadToken {}

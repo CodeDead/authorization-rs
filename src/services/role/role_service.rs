@@ -41,7 +41,11 @@ impl RoleService {
         self.repository.delete(db, uuid).await
     }
 
-    pub async fn delete_permission(&self, db: &Database, permission_id: &str) -> Result<u64, Error> {
+    pub async fn delete_permission(
+        &self,
+        db: &Database,
+        permission_id: &str,
+    ) -> Result<u64, Error> {
         self.repository.delete_permission(db, permission_id).await
     }
 }
