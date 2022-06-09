@@ -7,24 +7,24 @@ edition = "2021"
 readme = "README.md"
 repository = "https://github.com/CodeDead/authorization-rs"
 license = "GPL-3.0"
-keywords = ["api", "authorization", "mongo", "actix", "actix-web", "codedead"]
+keywords = ["api", "authorization", "mongo", "mongodb", "actix", "actix-web", "codedead"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-uuid = { version = "0.8", features = ["serde", "v4"] }
+uuid = { version = "1.1.1", features = ["serde", "v4"] }
 chrono = { version = "0.4.19", features = ["serde"] }
-serde = { version = "1.0.136", features = ["derive"] }
-serde_json = "1.0.79"
-mongodb = "2.1.0"
+serde = { version = "1.0.137", features = ["derive"] }
+serde_json = "1.0.81"
+mongodb = "2.2.2"
 futures = "0.3.21"
 actix-web = "4.0.1"
 actix-cors = "0.6.1"
-jsonwebtoken = "8.0.1"
-config = "0.13.0"
+jsonwebtoken = "8.1.0"
+config = "0.13.1"
 dotenv = "0.15.0"
-bcrypt = "0.12.1"
-regex = "1.5.5"
+bcrypt = "0.13.0"
+regex = "1.5.6"
 
 [profile.release]
 lto = true
