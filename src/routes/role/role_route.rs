@@ -1,4 +1,5 @@
 use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse};
+use chrono::Utc;
 use uuid::Uuid;
 
 use crate::{
@@ -7,7 +8,7 @@ use crate::{
     persistence::role::model::role::Role,
     routes::{
         convert_role_to_dto,
-        role::dto::{create_role::CreateRole, update_role::UpdateRole},
+        role::dto::{create_role::CreateRole, update_role::UpdateRole}, get_user_uuid_from_token,
     },
 };
 
@@ -29,6 +30,24 @@ pub async fn create_new_role(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
+
     if create.name.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Name cannot be empty!"));
     }
@@ -126,6 +145,23 @@ pub async fn get_all_roles(req: HttpRequest, pool: web::Data<AppDataPool>) -> Ht
         }
     };
 
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
+
     let roles = match pool.services.role_service.find_all(&pool.database).await {
         Ok(d) => d,
         Err(e) => {
@@ -168,6 +204,23 @@ pub async fn get_role_by_id(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     let res = match pool
         .services
@@ -216,6 +269,23 @@ pub async fn update_role(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     if update.name.is_empty() {
         return HttpResponse::BadRequest().json(BadRequest::new("Name cannot be empty!"));
@@ -320,6 +390,23 @@ pub async fn delete_role(
             return HttpResponse::Unauthorized().body("");
         }
     };
+
+    let id = match get_user_uuid_from_token(&req, &pool) {
+        Some(d) => d,
+        None => {
+            return HttpResponse::Unauthorized().body("");
+        }
+    };
+
+    let res = pool
+        .services
+        .user_service
+        .update_last_active(&pool.database, &id, &Utc::now().to_string())
+        .await;
+
+    if let Err(e) = res {
+        return HttpResponse::InternalServerError().json(InternalServerError::new(&e.to_string()));
+    }
 
     if let Err(e) = pool
         .services
