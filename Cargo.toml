@@ -12,13 +12,13 @@ keywords = ["api", "authorization", "mongo", "mongodb", "actix", "actix-web", "c
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-uuid = { version = "1.1.1", features = ["serde", "v4"] }
+uuid = { version = "1.1.2", features = ["serde", "v4"] }
 chrono = { version = "0.4.19", features = ["serde"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
 mongodb = "2.2.2"
 futures = "0.3.21"
-actix-web = "4.0.1"
+actix-web = "4.1.0"
 actix-cors = "0.6.1"
 jsonwebtoken = "8.1.0"
 config = "0.13.1"
